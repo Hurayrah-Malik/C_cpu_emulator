@@ -45,7 +45,7 @@ void print_reg_value(struct CPU *cpu, int register_num) {
 }
 
 
-    // --- SYNTAX REFERENCE ---
+    // --- SYNTAX REFERENCE ----
     // Variables:      int x = 5;   char c = 'a';   float f = 3.14;
     // Arrays:         int arr[8] = {0};             // all zeros
     //                 arr[0] = 99;                  // set element
