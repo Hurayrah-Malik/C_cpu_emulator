@@ -136,7 +136,7 @@ int main() {
     }
     
     
-    //print stuff from the cpu
+    //print stuff from the cpu . 
     print_cpu_state(cpu);
     
     free(cpu);
