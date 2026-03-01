@@ -6,6 +6,7 @@ struct CPU {
     int registers[8];
     int memory[256];
     int pc;           // program counter — tracks which instruction we're on
+    int running;
 };
 
 //print all registers and some memory
@@ -29,22 +30,63 @@ void print_cpu_state(struct CPU *cpu) {
 }
 
 //load a value into the given register 
-void load(struct CPU *cpu, int register_num, int value) {
+void load(struct CPU *cpu) {
+
+    printf("calling load\n");
+
+    //get which register to load the number into    
+    int register_num = cpu->memory[cpu->pc + 1];
+    //number to load into register
+    int value =   cpu->memory[cpu->pc + 2];
+ 
+
+
     //either one is correct. the -> is more industry standard (accessing field of what struct you are pointing to)
     //(*cpu).registers[register_num] = value;
+    //store the value in the register
     cpu -> registers[register_num] = value;
+
+    //update counter 
+    cpu->pc += 3;
 }
 
 //load a value into the given register 
-void add(struct CPU *cpu, int reg_destination ,int register_num1, int register_num2) {
+void add(struct CPU *cpu) {
+
+    printf("calling add\n");
+
+    //get the register you want the sum to be stored in
+    int reg_destination =  cpu->memory[cpu->pc + 1];
+
+    //registers to add
+    int register_num1 =  cpu->memory[cpu->pc + 2];
+    int register_num2 = cpu->memory[cpu->pc + 3];
+
+    //add the registers and store it in register destination
     cpu -> registers[reg_destination] = cpu -> registers[register_num1] + cpu -> registers[register_num2];
+    cpu->pc += 4;
 }
 //load a value into the given register 
-void print_reg_value(struct CPU *cpu, int register_num) {
+void print_reg_value(struct CPU *cpu) {
+    printf("calling PRINT\n");
+    
+    //register to print
+    int register_num = cpu->memory[cpu->pc+1];
+    //value of the register
     int value = cpu -> registers[register_num];
+
+    cpu->pc += 2;
+
     printf("the value of register number %d is %d \n", register_num, value);
 }
 
+//load a value into the given register 
+void halt(struct CPU *cpu) {
+    //set running to 0 so infinite loop stops running
+    printf("calling halt\n");
+    cpu->running = 0;
+    cpu->pc += 1;
+}
 
     // --- SYNTAX REFERENCE ----
     // Variables:      int x = 5;   char c = 'a';   float f = 3.14;
@@ -74,64 +116,43 @@ void print_reg_value(struct CPU *cpu, int register_num) {
 
 
 int main() {
+    //hard coded program
+    int program[] = { LOAD, 0, 5,  LOAD, 1, 10,  ADD, 2, 1, 0,  PRINT, 2,  HALT };
+    int len_program = sizeof(program) / sizeof(program[0]);
+
+
     //create a cpu struct pointer. calloc initialized everything to 0
     // cpu          // 0x5000  (the address)
     // *cpu         // the entire struct at 0x5000
     // cpu->pc      // the pc field inside the struct at 0x5000
     // (*cpu).pc    // exact same thing, just uglier
-
-    struct CPU *cpu = calloc(1, sizeof(struct CPU));
-
-
-    //hard coded program
-    int program[] = { LOAD, 0, 5,  LOAD, 1, 10,  ADD, 2, 1, 0,  PRINT, 2,  HALT };
-    int len_program = sizeof(program) / sizeof(program[0]);
+    struct CPU *cpu =  calloc(1, sizeof(struct CPU));
 
     //copy the program into memory
     for (int i = 0; i < len_program; i++) {
         cpu->memory[i] = program[i];
     }
 
+
+
+    //create an array of pointers to functions
+    //syntax: return value is void (array of 4 pointers) (input parameter for each function pointer)
+    void (*cpu_functions[4])(struct CPU *) = {load, add, print_reg_value, halt};
+
+
+
+
+
+
     //while loop that goes over whole program in memory
-    int running = 1;
-    while (running) {
+    cpu->running = 1;
+    while (cpu->running) {
         //get the opcode that the pointer is pointing to in  memory
         int opcode = cpu->memory[cpu->pc];
-
-        switch (opcode) {
-            case LOAD: {
-                load(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc + 2]);
-                printf("calling LOAD \n");
-                cpu->pc += 3;
-                break;
-            }
-            case ADD: {
-                add(cpu, cpu->memory[cpu->pc + 1], cpu->memory[cpu->pc + 2],cpu->memory[cpu->pc + 3]);
-                printf("calling ADD \n");
-                cpu->pc += 4;
-                break;
-
-            }
-             case PRINT: {
-                printf("calling PRINT\n");
-                print_reg_value(cpu,cpu->memory[cpu->pc+1]);
-                cpu->pc += 2;
-                break;
-
-            }
-             case HALT: {
-                printf("call HALT\n");
-                running = 0;
-                cpu->pc += 1;
-                break;
-
-            }
-            default: {
-            printf("some other command\n");
-            cpu->pc += 1;
-            
-            }
-        }
+        
+        //call the correct function given the opcode (look up the opcode in the array of function pointers)
+        cpu_functions[opcode](cpu);
+       
     
     }
     
