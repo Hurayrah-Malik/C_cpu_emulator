@@ -38,7 +38,7 @@ void load(struct CPU *cpu) {
     //decode the register number from the instruction.
     int register_num = (cpu->instruction >> 16) & 0xFF;
 
-    //number to load into register
+    //number to load into register.
     int value =   (cpu->instruction >> 8) & 0xFF;
  
     //either one is correct. the -> is more industry standard (accessing field of what struct you are pointing to)
