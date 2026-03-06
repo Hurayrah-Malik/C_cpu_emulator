@@ -35,7 +35,7 @@ void load(struct CPU *cpu) {
 
     printf("calling load\n");
 
-    //decode the register number from the instruction
+    //decode the register number from the instruction.
     int register_num = (cpu->instruction >> 16) & 0xFF;
 
     //number to load into register
